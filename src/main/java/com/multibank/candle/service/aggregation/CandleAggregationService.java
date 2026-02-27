@@ -81,7 +81,7 @@ public class CandleAggregationService {
      * @param interval the time interval
      * @return map of bucketStartTime to CandleBuilder
      */
-    private ConcurrentMap<Long, CandleBuilder> getCandles(String symbol, Interval interval){
+    public ConcurrentMap<Long, CandleBuilder> getCandles(String symbol, Interval interval){
         return store
                 .getOrDefault(symbol, new ConcurrentHashMap<>())
                 .getOrDefault(interval, new ConcurrentHashMap<>());
