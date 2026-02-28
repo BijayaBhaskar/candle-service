@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- *
+ * Simulates real-time market data feed.
  */
 @Component
 public class MarketDataSimulator {
