@@ -44,6 +44,9 @@ public class HistoryController {
                                       @RequestParam Interval interval,
                                       @RequestParam long from,
                                       @RequestParam long to){
+        if(from > to){
+            throw  new IllegalArgumentException("from timestamp must be <= to timestamp");
+        }
         return queryService.getHistory(symbol, interval, from, to);
     }
 }
