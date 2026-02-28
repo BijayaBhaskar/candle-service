@@ -6,7 +6,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "candle")
+@Table(
+        name = "candles",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"symbol", "interval", "bucket_time"}
+        ),
+        indexes = {
+                @Index(
+                        name = "idx_symbol_interval_bucket",
+                        columnList = "symbol, interval, bucket_time"
+                )
+        }
+)
 @Getter
 @Setter
 public class CandleEntity {
