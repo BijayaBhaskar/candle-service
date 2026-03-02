@@ -11,8 +11,8 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class CandleQueryServiceTest {
@@ -73,5 +73,34 @@ public class CandleQueryServiceTest {
         assertEquals(90, response.l().get(0));
         assertEquals(105, response.c().get(0));
         assertEquals(3, response.v().get(0));
+    }
+
+    @Test
+    void shouldReturnEmptyResponseWhenDataIsNotAvailable() {
+
+        when(repository
+                .findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(
+                        "BTC-USD",
+                        Interval.ONE_SEC,
+                        0L,
+                        5000L))
+                .thenReturn(null);
+
+        HistoryResponse response = queryService.getHistory("BTC-USD", Interval.ONE_SEC, 0L, 5000L);
+        assertEquals("ok", response.s());
+        assertTrue(response.o().isEmpty());
+        assertTrue(response.h().isEmpty());
+        assertTrue(response.l().isEmpty());
+        assertTrue(response.c().isEmpty());
+        assertTrue(response.v().isEmpty());
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenFromIsGreaterThanTo() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> queryService.getHistory("BTC-USD", Interval.ONE_SEC, 100L, 50L));
+
+        verifyNoInteractions(repository);
     }
 }
