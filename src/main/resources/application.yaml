@@ -2,9 +2,9 @@ spring:
   application:
     name: candle-service
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/candle_db
+    username: postgres
+    password: password
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,4 +16,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus
+        include: health,info,prometheus
