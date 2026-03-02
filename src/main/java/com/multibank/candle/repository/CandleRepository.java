@@ -5,6 +5,7 @@ import com.multibank.candle.entity.CandleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +40,8 @@ public interface CandleRepository extends JpaRepository<CandleEntity, Long> {
     @Modifying
     @Transactional
     @Query(value = """
-        INSERT INTO candles ( symbol, interval, bucket_time, open, high, low, close, volume)
-        VALUES (:symbol, :interval, :bucket, :price, :price, :price, :price, 1 )
+        INSERT INTO candles (symbol, interval, bucket_time, open, high, low, close, volume)
+        VALUES (:symbol, CAST(:interval AS varchar), :bucket, :price, :price, :price, :price, 1)
         ON CONFLICT (symbol, interval, bucket_time)
         DO UPDATE SET
             high = GREATEST(candles.high, EXCLUDED.high),
@@ -49,5 +50,10 @@ public interface CandleRepository extends JpaRepository<CandleEntity, Long> {
             volume = candles.volume + 1
         """,
             nativeQuery = true)
-    int updateCandle(String symbol, Interval interval, Long bucket, double price);
+    int updateCandle(
+            @Param("symbol") String symbol,
+            @Param("interval") String interval,
+            @Param("bucket") Long bucket,
+            @Param("price") double price
+    );
 }

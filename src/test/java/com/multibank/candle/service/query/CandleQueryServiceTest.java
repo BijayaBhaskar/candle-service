@@ -4,7 +4,6 @@ import com.multibank.candle.domain.HistoryResponse;
 import com.multibank.candle.domain.Interval;
 import com.multibank.candle.entity.CandleEntity;
 import com.multibank.candle.repository.CandleRepository;
-import com.multibank.candle.service.aggregation.CandleBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -63,7 +63,7 @@ public class CandleAggregationService {
 
         long bucket = getBucketStart(event.timestamp(), interval);
 
-        int updated = candleRepository.updateCandle(event.symbol(), interval, bucket, price);
+        int updated = candleRepository.updateCandle(event.symbol(), interval.name(), bucket, price);
 
         if (updated == 0) {
             insertNewCandle(event.symbol(), interval, bucket, price);
@@ -77,7 +77,7 @@ public class CandleAggregationService {
         } catch (DataIntegrityViolationException ex) {
             // Another thread inserted concurrently
             // Retry update to avoid race condition
-            candleRepository.updateCandle(symbol, interval, bucket, price);
+            candleRepository.updateCandle(symbol, interval.name(), bucket, price);
         }
     }
 
