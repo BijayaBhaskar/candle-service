@@ -61,7 +61,7 @@ public class CandleQueryService {
 
         log.debug("Fetching history for symbol={}, interval={}, from={}, to={}",
                 symbol, interval, from, to);
-        List<CandleEntity> candles = repository.findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(symbol, interval, from, to);
+        List<CandleEntity> candles = repository.findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(symbol, interval.name(), from, to);
 
         if(CollectionUtils.isEmpty(candles)){
             log.info("No candle data found for symbol={}, interval={}",

@@ -31,7 +31,7 @@ public class CandleQueryServiceTest {
         CandleEntity candle1 = new CandleEntity();
         candle1.setId(1L);
         candle1.setSymbol("BTC-USD");
-        candle1.setInterval(Interval.ONE_SEC);
+        candle1.setInterval(Interval.ONE_SEC.name());
         candle1.setBucketTime(1000L);
         candle1.setOpen(100);
         candle1.setHigh(110);
@@ -42,7 +42,7 @@ public class CandleQueryServiceTest {
         CandleEntity candle2 = new CandleEntity();
         candle2.setId(2L);
         candle2.setSymbol("BTC-USD");
-        candle2.setInterval(Interval.ONE_SEC);
+        candle2.setInterval(Interval.ONE_SEC.name());
         candle2.setBucketTime(2000L);
         candle2.setOpen(200);
         candle2.setHigh(210);
@@ -54,7 +54,7 @@ public class CandleQueryServiceTest {
         when(repository
                 .findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(
                         "BTC-USD",
-                        Interval.ONE_SEC,
+                        Interval.ONE_SEC.name(),
                         0L,
                         5000L))
                 .thenReturn(entities);
@@ -80,7 +80,7 @@ public class CandleQueryServiceTest {
         when(repository
                 .findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(
                         "BTC-USD",
-                        Interval.ONE_SEC,
+                        Interval.ONE_SEC.name(),
                         0L,
                         5000L))
                 .thenReturn(null);

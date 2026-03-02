@@ -85,7 +85,7 @@ public class CandleAggregationService {
 
         CandleEntity entity = new CandleEntity();
         entity.setSymbol(symbol);
-        entity.setInterval(interval);
+        entity.setInterval(interval.name());
         entity.setBucketTime(bucket);
         entity.setOpen(price);
         entity.setHigh(price);

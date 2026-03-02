@@ -25,7 +25,7 @@ public interface CandleRepository extends JpaRepository<CandleEntity, Long> {
      */
     List<CandleEntity> findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(
             String symbol,
-            Interval interval,
+            String interval,
             Long from,
             Long to
     );
