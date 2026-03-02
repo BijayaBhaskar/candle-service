@@ -6,6 +6,8 @@ import com.multibank.candle.service.query.CandleQueryService;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/history")
 public class HistoryController {
     private final CandleQueryService queryService;
+
+    private static final Logger log =
+            LoggerFactory.getLogger(HistoryController.class);
 
     /**
      * Constructor for historyController
@@ -49,8 +54,11 @@ public class HistoryController {
                                       @RequestParam @NotNull(message = "interval must be provided") Interval interval,
                                       @RequestParam @PositiveOrZero(message = "from timestamp must be >= 0") long from,
                                       @RequestParam @PositiveOrZero(message = "to timestamp must be >= 0") long to){
-        if(from > to){
-            throw  new IllegalArgumentException("from timestamp must be <= to timestamp");
+
+        log.info("Incoming history request for symbol={}, interval={}",
+                symbol, interval);
+        if (from > to) {
+            throw new IllegalArgumentException("Invalid time range");
         }
         return queryService.getHistory(symbol, interval, from, to);
     }

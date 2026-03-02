@@ -42,4 +42,15 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleGenericException(
+            Exception ex,
+            HttpServletRequest request) {
+        log.error("Unhandled exception occurred", ex);
+
+        return new ErrorResponse( Instant.now(), 500, "Internal Server Error",
+                "Unexpected error occurred", request.getRequestURI());
+    }
+
 }

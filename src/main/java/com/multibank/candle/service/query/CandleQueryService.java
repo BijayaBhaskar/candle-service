@@ -4,6 +4,8 @@ import com.multibank.candle.domain.HistoryResponse;
 import com.multibank.candle.domain.Interval;
 import com.multibank.candle.entity.CandleEntity;
 import com.multibank.candle.repository.CandleRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,6 +31,9 @@ public class CandleQueryService {
 
     private final CandleRepository repository;
 
+    private static final Logger log =
+            LoggerFactory.getLogger(CandleQueryService.class);
+
     /**
      * Constructor for CandleQueryService
      * @param repository CandleRepository
@@ -50,12 +55,19 @@ public class CandleQueryService {
     public HistoryResponse getHistory(String symbol, Interval interval,
                                       long from, long to){
 
+        if (from > to) {
+            throw new IllegalArgumentException("Invalid time range");
+        }
+
+        log.debug("Fetching history for symbol={}, interval={}, from={}, to={}",
+                symbol, interval, from, to);
         List<CandleEntity> candles = repository.findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(symbol, interval, from, to);
 
         if(CollectionUtils.isEmpty(candles)){
+            log.info("No candle data found for symbol={}, interval={}",
+                    symbol, interval);
             return emptyResponse();
         }
-
 
         return buildResponse(candles);
     }
