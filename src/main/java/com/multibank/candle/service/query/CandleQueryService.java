@@ -1,16 +1,14 @@
 package com.multibank.candle.service.query;
 
-import com.multibank.candle.domain.Candle;
 import com.multibank.candle.domain.HistoryResponse;
 import com.multibank.candle.domain.Interval;
-import com.multibank.candle.service.aggregation.CandleAggregationService;
-import com.multibank.candle.service.aggregation.CandleBuilder;
+import com.multibank.candle.entity.CandleEntity;
+import com.multibank.candle.repository.CandleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Service responsible for retrieving historical candle data
@@ -29,14 +27,14 @@ import java.util.Map;
 @Service
 public class CandleQueryService {
 
-    private final CandleAggregationService candleAggregationService;
+    private final CandleRepository repository;
 
     /**
      * Constructor for CandleQueryService
-     * @param candleAggregationService CandleAggregationService
+     * @param repository CandleRepository
      */
-    public CandleQueryService(CandleAggregationService candleAggregationService){
-        this.candleAggregationService = candleAggregationService;
+    public CandleQueryService(CandleRepository repository){
+        this.repository = repository;
     }
 
 
@@ -52,16 +50,12 @@ public class CandleQueryService {
     public HistoryResponse getHistory(String symbol, Interval interval,
                                       long from, long to){
 
-        Map<Long, CandleBuilder> map = candleAggregationService.getCandles(symbol, interval);
+        List<CandleEntity> candles = repository.findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(symbol, interval, from, to);
 
-        if(map.isEmpty()){
+        if(CollectionUtils.isEmpty(candles)){
             return emptyResponse();
         }
 
-        List<Candle> candles = map.values().stream().map(CandleBuilder::build)
-                .filter(c -> c.time() >= from && c.time() <= to)
-                .sorted(Comparator.comparingLong(Candle::time))
-                .toList();
 
         return buildResponse(candles);
     }
@@ -76,10 +70,10 @@ public class CandleQueryService {
 
     /**
      * This method build history response from list of candles
-     * @param candles list of candles
+     * @param candles list of CandleEntity
      * @return formatted candle history response
      */
-    private HistoryResponse buildResponse(List<Candle> candles) {
+    private HistoryResponse buildResponse(List<CandleEntity> candles) {
         List<Long> t = new ArrayList<>();
         List<Double> o = new ArrayList<>();
         List<Double> h = new ArrayList<>();
@@ -87,13 +81,13 @@ public class CandleQueryService {
         List<Double> c = new ArrayList<>();
         List<Long> v = new ArrayList<>();
 
-        for (Candle candle : candles) {
-            t.add(candle.time());
-            o.add(candle.open());
-            h.add(candle.high());
-            l.add(candle.low());
-            c.add(candle.close());
-            v.add(candle.volume());
+        for (CandleEntity candle : candles) {
+            t.add(candle.getBucketTime());
+            o.add(candle.getOpen());
+            h.add(candle.getHigh());
+            l.add(candle.getLow());
+            c.add(candle.getClose());
+            v.add(candle.getVolume());
         }
         return new HistoryResponse("ok", t, o, h, l, c, v);
     }

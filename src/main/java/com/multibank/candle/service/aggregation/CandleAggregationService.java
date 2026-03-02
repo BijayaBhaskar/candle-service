@@ -2,6 +2,10 @@ package com.multibank.candle.service.aggregation;
 
 import com.multibank.candle.domain.BidAskEvent;
 import com.multibank.candle.domain.Interval;
+import com.multibank.candle.entity.CandleEntity;
+import com.multibank.candle.repository.CandleRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,54 +14,72 @@ import java.util.concurrent.ConcurrentMap;
 /**
  *
  * Service responsible for aggregating incoming {@link BidAskEvent}
- * into OHLC {@link com.multibank.candle.domain.Candle} structures.
+ * into OHLC {@link com.multibank.candle.entity.CandleEntity} structures and store into candle table
  *
  * @author Bijaya Bhaskar Swain
  */
 @Service
+@Transactional
 public class CandleAggregationService {
 
-    /**
-     * In-memory storage for candle
-     * Symbol -> Interval -> Time -> CandleBuilder
-     */
-    private final ConcurrentMap<String,
-            ConcurrentMap<Interval, ConcurrentMap<Long, CandleBuilder>>>
-            store = new ConcurrentHashMap<>();
+    private final CandleRepository candleRepository;
+
+    public CandleAggregationService(CandleRepository candleRepository) {
+        this.candleRepository = candleRepository;
+    }
 
     /**
-     * Processes an incoming market data event and updates
+     * Processes an incoming market data event and updates candle table
      * corresponding OHLC candles across all supported intervals.
      *
      * @param event the incoming bid/ask market event
      */
-    public void onEvent(BidAskEvent event){
+    public void onEvent(BidAskEvent event) {
         // calculate price
         double price = (event.bid() + event.ask()) / 2;
 
-        // update all Intervals
-        for(Interval interval: Interval.values()){
-
-            long bucketStart = getBucketStart(event.timestamp(), interval);
-
-            // Get or Create intervalMap and candleMap
-            ConcurrentMap<Interval, ConcurrentMap<Long, CandleBuilder>> intervalMap =
-                    store.computeIfAbsent(event.symbol(), s -> new ConcurrentHashMap<>());
-
-            ConcurrentMap<Long, CandleBuilder> candleMap =
-                    intervalMap.computeIfAbsent(interval, i -> new ConcurrentHashMap<>());
-
-            // Create or Update candle
-            candleMap.compute(bucketStart, (time , existingCandle) ->{
-                if(existingCandle == null){
-                    return new CandleBuilder(bucketStart, price);
-                }else {
-                    existingCandle.update(price);
-                    return existingCandle;
-                }
-            });
-
+        // Update for all the intervals
+        for (Interval interval : Interval.values()) {
+            processInterval(event, interval, price);
         }
+    }
+
+    private void processInterval(BidAskEvent event, Interval interval, double price) {
+
+        long bucket = getBucketStart(event.timestamp(), interval);
+
+        int updated = candleRepository.updateCandle(event.symbol(), interval, bucket, price);
+
+        if (updated == 0) {
+            insertNewCandle(event.symbol(), interval, bucket, price);
+        }
+    }
+
+    private void insertNewCandle(String symbol, Interval interval, long bucket, double price) {
+        try {
+            CandleEntity entity = buildNewCandle(symbol, interval, bucket, price);
+            candleRepository.save(entity);
+        } catch (DataIntegrityViolationException ex) {
+            // Another thread inserted concurrently
+            // Retry update to avoid race condition
+            candleRepository.updateCandle(symbol, interval, bucket, price);
+        }
+    }
+
+    private CandleEntity buildNewCandle(String symbol, Interval interval, long bucket, double price) {
+
+        CandleEntity entity = new CandleEntity();
+        entity.setSymbol(symbol);
+        entity.setInterval(interval);
+        entity.setBucketTime(bucket);
+        entity.setOpen(price);
+        entity.setHigh(price);
+        entity.setLow(price);
+        entity.setClose(price);
+        entity.setVolume(1);
+
+        return entity;
+
     }
 
     /**
@@ -65,26 +87,12 @@ public class CandleAggregationService {
      * and interval.
      *
      * @param epochMillis the event timestamp in milliseconds
-     * @param interval the aggregation interval
+     * @param interval    the aggregation interval
      * @return the bucket start time in UNIX seconds
      */
-    private long getBucketStart(long epochMillis, Interval interval){
+    private long getBucketStart(long epochMillis, Interval interval) {
         long second = epochMillis / 1000;
-        return (second/interval.getSeconds()) * interval.getSeconds();
-    }
-
-    /**
-     * Returns all candles for a given symbol and interval.
-     * If no candles exist, an empty map is returned.
-     *
-     * @param symbol the trading symbol (e.g., BTC-USD)
-     * @param interval the time interval
-     * @return map of bucketStartTime to CandleBuilder
-     */
-    public ConcurrentMap<Long, CandleBuilder> getCandles(String symbol, Interval interval){
-        return store
-                .getOrDefault(symbol, new ConcurrentHashMap<>())
-                .getOrDefault(interval, new ConcurrentHashMap<>());
+        return (second / interval.getSeconds()) * interval.getSeconds();
     }
 
 

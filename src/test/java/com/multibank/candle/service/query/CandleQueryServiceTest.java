@@ -2,13 +2,14 @@ package com.multibank.candle.service.query;
 
 import com.multibank.candle.domain.HistoryResponse;
 import com.multibank.candle.domain.Interval;
-import com.multibank.candle.service.aggregation.CandleAggregationService;
+import com.multibank.candle.entity.CandleEntity;
+import com.multibank.candle.repository.CandleRepository;
 import com.multibank.candle.service.aggregation.CandleBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,32 +17,61 @@ import static org.mockito.Mockito.when;
 
 public class CandleQueryServiceTest {
 
-    private CandleAggregationService aggregationService;
+    private CandleRepository repository;
     private CandleQueryService queryService;
 
     @BeforeEach
     void setup() {
-        aggregationService = Mockito.mock(CandleAggregationService.class);
-        queryService = new CandleQueryService(aggregationService);
+        repository = Mockito.mock(CandleRepository.class);
+        queryService = new CandleQueryService(repository);
     }
 
     @Test
     void shouldReturnSortedHistoryWithinRange() {
 
-        ConcurrentHashMap<Long, CandleBuilder> map =
-                new ConcurrentHashMap<>();
-        map.put(2000L, new CandleBuilder(2000L, 100));
-        map.put(1000L, new CandleBuilder(1000L, 200));
+        CandleEntity candle1 = new CandleEntity();
+        candle1.setId(1L);
+        candle1.setSymbol("BTC-USD");
+        candle1.setInterval(Interval.ONE_SEC);
+        candle1.setBucketTime(1000L);
+        candle1.setOpen(100);
+        candle1.setHigh(110);
+        candle1.setLow(90);
+        candle1.setClose(105);
+        candle1.setVolume(3);
 
-        when(aggregationService.getCandles("BTC-USD", Interval.ONE_SEC))
-                .thenReturn(map);
+        CandleEntity candle2 = new CandleEntity();
+        candle2.setId(2L);
+        candle2.setSymbol("BTC-USD");
+        candle2.setInterval(Interval.ONE_SEC);
+        candle2.setBucketTime(2000L);
+        candle2.setOpen(200);
+        candle2.setHigh(210);
+        candle2.setLow(190);
+        candle2.setClose(205);
+        candle2.setVolume(5);
 
-        HistoryResponse response =
-                queryService.getHistory("BTC-USD", Interval.ONE_SEC, 0, 5000);
+        List<CandleEntity> entities = List.of(candle1, candle2);
+        when(repository
+                .findBySymbolAndIntervalAndBucketTimeBetweenOrderByBucketTimeAsc(
+                        "BTC-USD",
+                        Interval.ONE_SEC,
+                        0L,
+                        5000L))
+                .thenReturn(entities);
 
+        HistoryResponse response = queryService.getHistory("BTC-USD", Interval.ONE_SEC, 0L, 5000L);
         assertEquals("ok", response.s());
         assertEquals(2, response.t().size());
-        // check sort
+
+        // verify sorting
         assertTrue(response.t().get(0) < response.t().get(1));
+
+        // verify mapping correctness
+        assertEquals(100, response.o().get(0));
+        assertEquals(110, response.h().get(0));
+        assertEquals(90, response.l().get(0));
+        assertEquals(105, response.c().get(0));
+        assertEquals(3, response.v().get(0));
     }
 }
