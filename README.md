@@ -27,7 +27,7 @@ for clarity and scalability.
 ---
 
 ## Architecture
-![Architecture Design](docs/architecture.png)
+![Architecture Design](docs/architecture.jpg)
 
 Key architectural highlights:
 
