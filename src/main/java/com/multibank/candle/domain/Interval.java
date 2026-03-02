@@ -13,7 +13,8 @@ public enum Interval {
     ONE_MIN("1m", 60),
     FIVE_MIN("5m", 300),
     FIFTEEN_MIN("15m",900),
-    ONE_HOUR("1h",3600);
+    ONE_HOUR("1h",3600),
+    TWO_HOUR("2h",7200);
 
 
     private final String code;

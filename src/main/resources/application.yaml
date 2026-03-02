@@ -7,14 +7,12 @@ spring:
     password: password
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: create
+    show-sql: true
     properties:
       hibernate:
-        format_sql: false
-        schema:
-          enum:
-            check_constraints: false   #prevents enum CHECK creation
+        format_sql: true
+        create_enum_check_constraints: false   #prevents enum CHECK creation
 management:
   endpoints:
     web:
