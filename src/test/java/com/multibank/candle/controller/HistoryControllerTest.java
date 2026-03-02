@@ -57,7 +57,7 @@ public class HistoryControllerTest {
 
         mockMvc.perform(get("/history")
                         .param("symbol", "BTC-USD")
-                        .param("interval", "ONE_SEC")
+                        .param("interval", "1s")
                         .param("from", "0")
                         .param("to", "2000"))
                 .andExpect(status().isOk())

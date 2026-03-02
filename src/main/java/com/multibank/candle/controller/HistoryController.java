@@ -51,15 +51,17 @@ public class HistoryController {
     @GetMapping
     @Validated
     public HistoryResponse getHistory(@RequestParam @NotBlank(message = "Symbol must not be blank") String symbol,
-                                      @RequestParam @NotNull(message = "interval must be provided") Interval interval,
+                                      @RequestParam @NotBlank(message = "interval must be provided") String interval,
                                       @RequestParam @PositiveOrZero(message = "from timestamp must be >= 0") long from,
                                       @RequestParam @PositiveOrZero(message = "to timestamp must be >= 0") long to){
 
         log.info("Incoming history request for symbol={}, interval={}",
                 symbol, interval);
+        Interval enumInterval = Interval.fromCode(interval);
+
         if (from > to) {
             throw new IllegalArgumentException("Invalid time range");
         }
-        return queryService.getHistory(symbol, interval, from, to);
+        return queryService.getHistory(symbol, enumInterval, from, to);
     }
 }

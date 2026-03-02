@@ -110,7 +110,7 @@ Or run from IDE.
 
 - History API :
     ```yaml
-    GET http://localhost:8080/history?symbol=BTC-USD&interval=ONE_MINUTE&from=0&to=9999999999
+    GET http://localhost:8080/history?symbol=BTC-USD&interval=1s&from=0&to=9999999999
     ```
 
 - Actuator :
