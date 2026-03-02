@@ -162,12 +162,15 @@ Test coverage includes:
 ---
 
 ## Possible Future Improvements
-- Kafka-based ingestion
-- Redis caching
-- Time-series optimization (TimescaleDB / partitioning)
-- API authentication & security hardening
-- Secure secret management (Vault / cloud secret store)
-- Containerized deployment (Docker/Kubernetes)
+- Kafka-based ingestion for real-time streaming
+- Redis caching for low-latency reads
+- Time-series optimization using TimescaleDB
+- OpenAPI (Swagger) integration for interactive API documentation
+- OAuth2/JWT-based authentication
+- Observability with Prometheus, Grafana & OpenTelemetry
+- Centralized logging using ELK stack
+- Secure secret management using Vault or cloud secret stores
+- Containerized deployment using Docker & Kubernetes
 
 ---
 
